@@ -1,0 +1,39 @@
+#cloud-config
+hostname: ${hostname}
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDFi9Wbs5HKRUoZfuf4GkxtG6YcOe5TEiw3ur5ra0jw01yDuaf3e4DQ95m9de3F0q0aKdcAjTp82ZKIyg527U8ZohiSm1lgWgiz17oJLikaQ/rvLjqF3Q6dDYGQZsP9O11LAVAngWK8j3oUnAerpnGAF9lCT1BmbXbvbJ0WhNRE14VZr7CPSYhg5b/rI2p+1iNjNZBJtpsxwdvWaH3mDuB/NuJR+qNzBgPD0RUoCo1uwWMQp1IKKvKb0cz5yrWrdxOOMmIocgvEP/VwJp0hSXp3y71uBNu0AUHwknVIp+ET9Rsg09M2YKzJSuZxT8cittt2uA1HUqzJVgyCVGgh1B3qxYiADQzZvcxT3MRLOFhZ13397QSSzA6ZF1+3iFijAQfvhOYfDVDrO642YspWZgMoNE8wogJGUioWW+K1KJ4ghsepThKD3CkrR08OZHNXpfwX6tSxz9qohfkowmILBEav/7v00JfO/46Z8NxQp01uw/bHIoARleeokjqVG7XnEic= ralphsmeets@MacBook-Pro-van-Ralph.local
+yum_repos:
+  kubernetes:
+    name: Kubernetes
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+    enabled: true
+    gpgcheck: true
+    repo_gpgcheck: true
+    gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    exclude: kubelet kubeadm kubectl
+packages:
+  - yum-utils
+  - device-mapper-persistent-data
+  - lvm2
+runcmd:
+  - echo "${hostname}" > /etc/hostname
+  - echo "127.0.0.1 ${hostname}" >> /etc/hosts
+  - nmcli con mod "System eth0" ipv4.addresses ${hostip}
+  - nmcli con mod "System eth0" ipv4.gateway 192.168.1.1
+  - nmcli con mod "System eth0" ipv4.method manual
+  - nmcli con mod "System eth0" ipv4.dns 192.168.1.1
+  - nmcli con up "System eth0"
+  - systemctl restart NetworkManager
+  - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  - yum update -y && yum install -y containerd.io docker-ce docker-ce-cli
+  - sudo mkdir /etc/docker
+  - sudo mkdir -p /etc/systemd/system/docker.service.d
+  - sudo systemctl daemon-reload
+  - sudo systemctl restart docker
+  - sudo systemctl enable docker
+  - setenforce 0
+  - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+  - yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+  - systemctl enable --now kubelet
+  - systemctl daemon-reload
+  - systemctl restart kubelet
