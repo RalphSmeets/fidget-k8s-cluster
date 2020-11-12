@@ -15,7 +15,7 @@ variable "workers" {
 
 variable "name" {
   description = "Name of the cluster"
-  default     = "Fidget"
+  default     = "Your name!"
 }
 
 variable "pod_network_cidr" {
@@ -38,4 +38,5 @@ variable "os" {
 
 variable "ssh_keys" {
   type = list(string)
+  default = []
 }

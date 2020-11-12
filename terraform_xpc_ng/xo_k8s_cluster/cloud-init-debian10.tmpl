@@ -1,22 +1,14 @@
 #cloud-config
 hostname: ${hostname}
 ssh_authorized_keys:
-  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDFi9Wbs5HKRUoZfuf4GkxtG6YcOe5TEiw3ur5ra0jw01yDuaf3e4DQ95m9de3F0q0aKdcAjTp82ZKIyg527U8ZohiSm1lgWgiz17oJLikaQ/rvLjqF3Q6dDYGQZsP9O11LAVAngWK8j3oUnAerpnGAF9lCT1BmbXbvbJ0WhNRE14VZr7CPSYhg5b/rI2p+1iNjNZBJtpsxwdvWaH3mDuB/NuJR+qNzBgPD0RUoCo1uwWMQp1IKKvKb0cz5yrWrdxOOMmIocgvEP/VwJp0hSXp3y71uBNu0AUHwknVIp+ET9Rsg09M2YKzJSuZxT8cittt2uA1HUqzJVgyCVGgh1B3qxYiADQzZvcxT3MRLOFhZ13397QSSzA6ZF1+3iFijAQfvhOYfDVDrO642YspWZgMoNE8wogJGUioWW+K1KJ4ghsepThKD3CkrR08OZHNXpfwX6tSxz9qohfkowmILBEav/7v00JfO/46Z8NxQp01uw/bHIoARleeokjqVG7XnEic= ralphsmeets@MacBook-Pro-van-Ralph.local
+%{ for ssh_key in ssh_keys ~}
+  - ${ssh_key}
+%{ endfor ~}
 write_files:
   - content: |
       net.bridge.bridge-nf-call-ip6tables = 1
       net.bridge.bridge-nf-call-iptables = 1
     path: /etc/sysctl.d/k8s.conf
-#  - content: |
-#      {
-#        "exec-opts": ["native.cgroupdriver=systemd"],
-#        "log-driver": "json-file",
-#        "log-opts": {
-#          "max-size": "100m"
-#        },
-#       "storage-driver": "overlay2"
-#      }
-#    path: /tmp/etc/docker/daemon.json
   - content: |
       deb https://apt.kubernetes.io/ kubernetes-xenial main
     path: /etc/apt/sources.list.d/kubernetes.list
@@ -30,12 +22,8 @@ write_files:
     path: /etc/network/interfaces.d/99-kubernetes.cfg
 package_upgrade: true
 packages:
-# - apt-transport-https
-# - ca-certificates
   - curl
-# - software-properties-common
   - gnupg2
-# - docker.io
 runcmd:
   - update-alternatives --set iptables /usr/sbin/iptables-legacy
   - sysctl --system
@@ -47,10 +35,5 @@ runcmd:
 %{ for vm in machines ~} 
   - echo "${vm.hostip} ${vm.hostname}" >> /etc/hosts
 %{ endfor ~}
-#  - cp -f tmp/etc/docker/daemon.json /etc/docker/daemon.json
-#  - systemctl restart docker
   - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-#  - apt-get update && apt-get install -y kubelet kubeadm kubectl  
-#  - apt-mark hold kubelet kubeadm kubectl
-#  - systemctl enable kubelet
   - reboot

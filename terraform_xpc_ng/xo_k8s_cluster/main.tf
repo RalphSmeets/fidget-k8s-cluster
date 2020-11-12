@@ -79,9 +79,8 @@ resource "xenorchestra_vm" "machine" {
       hostname = each.value.hostname
       hostip = each.value.hostip
       machines = local.machines
-      # count = each.key
-      # pod_network_cidr = var.pod_network_cidr
-      # token = local.kubeadm_token
+      ssh_keys = var.ssh_keys
+
     })
     name_label = each.value.name
     name_description = "Created By Terraform"

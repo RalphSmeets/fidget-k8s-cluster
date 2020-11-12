@@ -2,18 +2,9 @@
 manage_etc_hosts: 
 hostname: ${hostname}
 ssh_authorized_keys:
-  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDFi9Wbs5HKRUoZfuf4GkxtG6YcOe5TEiw3ur5ra0jw01yDuaf3e4DQ95m9de3F0q0aKdcAjTp82ZKIyg527U8ZohiSm1lgWgiz17oJLikaQ/rvLjqF3Q6dDYGQZsP9O11LAVAngWK8j3oUnAerpnGAF9lCT1BmbXbvbJ0WhNRE14VZr7CPSYhg5b/rI2p+1iNjNZBJtpsxwdvWaH3mDuB/NuJR+qNzBgPD0RUoCo1uwWMQp1IKKvKb0cz5yrWrdxOOMmIocgvEP/VwJp0hSXp3y71uBNu0AUHwknVIp+ET9Rsg09M2YKzJSuZxT8cittt2uA1HUqzJVgyCVGgh1B3qxYiADQzZvcxT3MRLOFhZ13397QSSzA6ZF1+3iFijAQfvhOYfDVDrO642YspWZgMoNE8wogJGUioWW+K1KJ4ghsepThKD3CkrR08OZHNXpfwX6tSxz9qohfkowmILBEav/7v00JfO/46Z8NxQp01uw/bHIoARleeokjqVG7XnEic= ralphsmeets@MacBook-Pro-van-Ralph.local
-yum_repos:
-  kubernetes:
-    name: Kubernetes
-    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
-    enabled: true
-    gpgcheck: true
-    repo_gpgcheck: true
-    gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-    exclude: kubelet kubeadm kubectl
-  docker-ce:
-    name
+%{ for ssh_key in ssh_keys ~}
+  - ${ssh_key}
+%{ endfor ~}
 packages:
   - yum-utils
   - device-mapper-persistent-data
@@ -48,12 +39,5 @@ runcmd:
   - firewall-offline-cmd --add-port=10255/tcp
   - modprobe br_netfilter
   - echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
-  - yum install -y docker-ce
-  - yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-  - systemctl start docker && systemctl enable docker
-  - systemctl start kubelet && systemctl enable kubelet
-  - sed -i 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-  - systemctl daemon-reload
-  - systemctl restart kubelet
   - reboot
   

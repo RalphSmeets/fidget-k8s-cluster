@@ -14,10 +14,14 @@ provider "xenorchestra" {
 
 module "xo_k8s_cluster" {
     source = "./xo_k8s_cluster"
-    lbs = 0
-    masters = 1
-    workers = 3
-    name = "Fidget"
+    lbs = var.lbs
+    masters = var.masters
+    workers = var.workers
+    name = var.name
+    ssh_keys = [
+        "ssh-rsa key1",
+        "ssh-rsa key1"
+    ]
 }
 
 output "machines" {
